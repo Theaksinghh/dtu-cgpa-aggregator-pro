@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
-import { Plus, Calculator, Trash2 } from 'lucide-react';
+import { Plus, Calculator, Trash2, ChartBarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 interface SemesterData {
   id: number;
@@ -12,11 +12,22 @@ interface SemesterData {
   credits: string;
 }
 
+interface CGPAInsights {
+  nextSemTarget: number | null;
+  overall8Target: number | null;
+  progressToNext: number;
+}
+
 const CGPACalculator = () => {
   const [semesters, setSemesters] = useState<SemesterData[]>([
     { id: 1, sgpa: '', credits: '' }
   ]);
   const [cgpa, setCGPA] = useState<number | null>(null);
+  const [insights, setInsights] = useState<CGPAInsights>({
+    nextSemTarget: null,
+    overall8Target: null,
+    progressToNext: 0
+  });
   const { toast } = useToast();
 
   const addSemester = () => {
@@ -36,6 +47,24 @@ const CGPACalculator = () => {
       }
       return sem;
     }));
+  };
+
+  const calculateInsights = (currentCGPA: number, totalCredits: number) => {
+    const nextHalf = Math.ceil(currentCGPA * 2) / 2;
+    const nextSemCredits = 20;
+    const nextSemTarget = ((nextHalf * (totalCredits + nextSemCredits)) - (currentCGPA * totalCredits)) / nextSemCredits;
+    const remainingSemesters = 8 - semesters.length;
+    const remainingCredits = remainingSemesters * nextSemCredits;
+    const overall8Target = remainingSemesters > 0 
+      ? ((8 * (totalCredits + remainingCredits)) - (currentCGPA * totalCredits)) / remainingCredits
+      : null;
+    const progressToNext = ((currentCGPA - Math.floor(currentCGPA * 2) / 2) / 0.5) * 100;
+
+    setInsights({
+      nextSemTarget: nextSemTarget > 0 && nextSemTarget <= 10 ? nextSemTarget : null,
+      overall8Target: overall8Target !== null && overall8Target > 0 && overall8Target <= 10 ? overall8Target : null,
+      progressToNext
+    });
   };
 
   const calculateCGPA = () => {
@@ -64,6 +93,7 @@ const CGPACalculator = () => {
     if (isValid) {
       const calculatedCGPA = totalWeightedSGPA / totalCredits;
       setCGPA(calculatedCGPA);
+      calculateInsights(calculatedCGPA, totalCredits);
       toast({
         title: "CGPA Calculated",
         description: `Your aggregate CGPA is ${calculatedCGPA.toFixed(2)}`,
@@ -74,6 +104,11 @@ const CGPACalculator = () => {
   const clearData = () => {
     setSemesters([{ id: 1, sgpa: '', credits: '' }]);
     setCGPA(null);
+    setInsights({
+      nextSemTarget: null,
+      overall8Target: null,
+      progressToNext: 0
+    });
     toast({
       title: "Data Cleared",
       description: "All semester data has been reset.",
@@ -158,10 +193,45 @@ const CGPACalculator = () => {
           </div>
 
           {cgpa !== null && (
-            <div className="mt-8 p-6 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl animate-fade-in">
-              <p className="text-center text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Your Aggregate CGPA: {cgpa.toFixed(2)}
-              </p>
+            <div className="mt-8 space-y-6 animate-fade-in">
+              <div className="p-6 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <ChartBarIcon className="h-6 w-6 text-purple-600" />
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Your Academic Insights
+                  </h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-2xl font-bold text-purple-600 mb-2">
+                      Current CGPA: {cgpa.toFixed(2)}
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">Progress to next grade point</p>
+                      <Progress value={insights.progressToNext} className="h-2" />
+                    </div>
+                  </div>
+
+                  {insights.nextSemTarget && (
+                    <div className="p-4 bg-white/50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">To reach next 0.5 CGPA</p>
+                      <p className="text-lg font-semibold text-purple-600">
+                        Need {insights.nextSemTarget.toFixed(2)} SGPA in next semester
+                      </p>
+                    </div>
+                  )}
+
+                  {insights.overall8Target && (
+                    <div className="p-4 bg-white/50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">To achieve 8+ CGPA</p>
+                      <p className="text-lg font-semibold text-purple-600">
+                        Need {insights.overall8Target.toFixed(2)} SGPA in remaining semesters
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </Card>
