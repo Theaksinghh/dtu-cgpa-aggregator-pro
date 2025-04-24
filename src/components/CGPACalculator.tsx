@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Calculator, Trash2, ChartBarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,14 +48,11 @@ const CGPACalculator = () => {
   };
 
   const calculateInsights = (currentCGPA: number, totalCredits: number) => {
-    // Calculate the next 0.5 milestone
     const nextMilestone = Math.ceil(currentCGPA * 2) / 2;
-    const nextSemCredits = 20; // Assuming standard credits for next semester
+    const nextSemCredits = 20;
     
-    // Calculate SGPA needed in next semester to reach the next milestone
     const nextMilestoneTarget = ((nextMilestone * (totalCredits + nextSemCredits)) - (currentCGPA * totalCredits)) / nextSemCredits;
     
-    // Calculate progress towards next milestone (as a percentage)
     const currentBase = Math.floor(currentCGPA * 2) / 2;
     const progressToNext = ((currentCGPA - currentBase) / 0.5) * 100;
 
@@ -111,6 +107,31 @@ const CGPACalculator = () => {
       title: "Data Cleared",
       description: "All semester data has been reset.",
     });
+  };
+
+  const renderMilestoneRanges = () => {
+    const ranges = [];
+    for (let i = 0; i <= 9.5; i += 0.5) {
+      const nextMilestone = i + 0.5;
+      const credits = semesters.reduce((sum, sem) => sum + parseFloat(sem.credits || '0'), 0);
+      const nextSemCredits = 20;
+      
+      const requiredSGPA = ((nextMilestone * (credits + nextSemCredits)) - (i * credits)) / nextSemCredits;
+      
+      if (requiredSGPA > 0 && requiredSGPA <= 10) {
+        ranges.push(
+          <div key={i} className="p-4 bg-white/50 rounded-lg">
+            <p className="text-sm text-gray-600 mb-1">
+              Range {i.toFixed(1)} - {nextMilestone.toFixed(1)}
+            </p>
+            <p className="text-lg font-semibold text-purple-600">
+              Need {requiredSGPA.toFixed(2)} SGPA
+            </p>
+          </div>
+        );
+      }
+    }
+    return ranges;
   };
 
   return (
@@ -217,16 +238,12 @@ const CGPACalculator = () => {
                     </div>
                   </div>
 
-                  {insights.nextMilestoneTarget && (
-                    <div className="p-4 bg-white/50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-1">
-                        To reach {Math.ceil(cgpa * 2) / 2} CGPA in next semester
-                      </p>
-                      <p className="text-lg font-semibold text-purple-600">
-                        Need {insights.nextMilestoneTarget.toFixed(2)} SGPA
-                      </p>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+                    <h4 className="col-span-full text-lg font-semibold text-gray-700 mb-2">
+                      SGPA Requirements for Each Range
+                    </h4>
+                    {renderMilestoneRanges()}
+                  </div>
                 </div>
               </div>
             </div>
