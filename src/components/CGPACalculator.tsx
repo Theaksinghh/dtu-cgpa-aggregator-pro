@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Calculator, Trash2, ChartBarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,8 +14,7 @@ interface SemesterData {
 }
 
 interface CGPAInsights {
-  nextSemTarget: number | null;
-  overall8Target: number | null;
+  nextMilestoneTarget: number | null;
   progressToNext: number;
 }
 
@@ -24,8 +24,7 @@ const CGPACalculator = () => {
   ]);
   const [cgpa, setCGPA] = useState<number | null>(null);
   const [insights, setInsights] = useState<CGPAInsights>({
-    nextSemTarget: null,
-    overall8Target: null,
+    nextMilestoneTarget: null,
     progressToNext: 0
   });
   const { toast } = useToast();
@@ -50,19 +49,19 @@ const CGPACalculator = () => {
   };
 
   const calculateInsights = (currentCGPA: number, totalCredits: number) => {
-    const nextHalf = Math.ceil(currentCGPA * 2) / 2;
-    const nextSemCredits = 20;
-    const nextSemTarget = ((nextHalf * (totalCredits + nextSemCredits)) - (currentCGPA * totalCredits)) / nextSemCredits;
-    const remainingSemesters = 8 - semesters.length;
-    const remainingCredits = remainingSemesters * nextSemCredits;
-    const overall8Target = remainingSemesters > 0 
-      ? ((8 * (totalCredits + remainingCredits)) - (currentCGPA * totalCredits)) / remainingCredits
-      : null;
-    const progressToNext = ((currentCGPA - Math.floor(currentCGPA * 2) / 2) / 0.5) * 100;
+    // Calculate the next 0.5 milestone
+    const nextMilestone = Math.ceil(currentCGPA * 2) / 2;
+    const nextSemCredits = 20; // Assuming standard credits for next semester
+    
+    // Calculate SGPA needed in next semester to reach the next milestone
+    const nextMilestoneTarget = ((nextMilestone * (totalCredits + nextSemCredits)) - (currentCGPA * totalCredits)) / nextSemCredits;
+    
+    // Calculate progress towards next milestone (as a percentage)
+    const currentBase = Math.floor(currentCGPA * 2) / 2;
+    const progressToNext = ((currentCGPA - currentBase) / 0.5) * 100;
 
     setInsights({
-      nextSemTarget: nextSemTarget > 0 && nextSemTarget <= 10 ? nextSemTarget : null,
-      overall8Target: overall8Target !== null && overall8Target > 0 && overall8Target <= 10 ? overall8Target : null,
+      nextMilestoneTarget: nextMilestoneTarget > 0 && nextMilestoneTarget <= 10 ? nextMilestoneTarget : null,
       progressToNext
     });
   };
@@ -105,8 +104,7 @@ const CGPACalculator = () => {
     setSemesters([{ id: 1, sgpa: '', credits: '' }]);
     setCGPA(null);
     setInsights({
-      nextSemTarget: null,
-      overall8Target: null,
+      nextMilestoneTarget: null,
       progressToNext: 0
     });
     toast({
@@ -208,25 +206,24 @@ const CGPACalculator = () => {
                       Current CGPA: {cgpa.toFixed(2)}
                     </p>
                     <div className="space-y-2">
-                      <p className="text-sm text-gray-600">Progress to next grade point</p>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">{Math.floor(cgpa * 2) / 2}</span>
+                        <span className="text-gray-600">{Math.ceil(cgpa * 2) / 2}</span>
+                      </div>
                       <Progress value={insights.progressToNext} className="h-2" />
+                      <p className="text-sm text-gray-600 text-center mt-1">
+                        {insights.progressToNext.toFixed(1)}% progress to next milestone
+                      </p>
                     </div>
                   </div>
 
-                  {insights.nextSemTarget && (
+                  {insights.nextMilestoneTarget && (
                     <div className="p-4 bg-white/50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-1">To reach next 0.5 CGPA</p>
-                      <p className="text-lg font-semibold text-purple-600">
-                        Need {insights.nextSemTarget.toFixed(2)} SGPA in next semester
+                      <p className="text-sm text-gray-600 mb-1">
+                        To reach {Math.ceil(cgpa * 2) / 2} CGPA in next semester
                       </p>
-                    </div>
-                  )}
-
-                  {insights.overall8Target && (
-                    <div className="p-4 bg-white/50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-1">To achieve 8+ CGPA</p>
                       <p className="text-lg font-semibold text-purple-600">
-                        Need {insights.overall8Target.toFixed(2)} SGPA in remaining semesters
+                        Need {insights.nextMilestoneTarget.toFixed(2)} SGPA
                       </p>
                     </div>
                   )}
