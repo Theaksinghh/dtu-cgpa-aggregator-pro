@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Calculator } from 'lucide-react';
+import { Plus, Calculator, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -81,19 +81,28 @@ const CGPACalculator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">DTU CGPA Calculator</h1>
-          <p className="text-gray-600">Calculate your aggregate CGPA based on semester-wise performance</p>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
+            DTU CGPA Calculator
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Calculate your academic journey with precision
+          </p>
         </div>
 
-        <Card className="p-6 bg-white shadow-lg rounded-lg">
-          <div className="space-y-4">
+        <Card className="p-8 bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl border border-gray-100">
+          <div className="space-y-6">
             {semesters.map((semester) => (
-              <div key={semester.id} className="flex gap-4 items-center">
-                <div className="w-24 shrink-0">
-                  <p className="text-sm font-medium text-gray-700">Semester {semester.id}</p>
+              <div
+                key={semester.id}
+                className="flex gap-4 items-center animate-fade-in"
+              >
+                <div className="w-28 shrink-0">
+                  <p className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Semester {semester.id}
+                  </p>
                 </div>
                 <Input
                   type="number"
@@ -103,43 +112,54 @@ const CGPACalculator = () => {
                   placeholder="SGPA"
                   value={semester.sgpa}
                   onChange={(e) => handleInputChange(semester.id, 'sgpa', e.target.value)}
-                  className="w-32"
+                  className="w-32 transition-all hover:border-purple-400 focus:border-purple-500"
                 />
                 <Input
                   type="number"
                   placeholder="Credits"
                   value={semester.credits}
                   onChange={(e) => handleInputChange(semester.id, 'credits', e.target.value)}
-                  className="w-32"
+                  className="w-32 transition-all hover:border-purple-400 focus:border-purple-500"
                 />
                 {semesters.length > 1 && (
                   <Button
                     variant="destructive"
-                    size="sm"
+                    size="icon"
                     onClick={() => removeSemester(semester.id)}
+                    className="hover:scale-105 transition-transform"
                   >
-                    Remove
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             ))}
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-4">
-            <Button onClick={addSemester} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Add Semester
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Button 
+              onClick={addSemester} 
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 transition-all hover:scale-105"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Semester
             </Button>
-            <Button onClick={calculateCGPA} className="flex items-center gap-2" variant="default">
-              <Calculator className="h-4 w-4" /> Calculate CGPA
+            <Button 
+              onClick={calculateCGPA} 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition-all hover:scale-105"
+            >
+              <Calculator className="h-4 w-4 mr-2" /> Calculate CGPA
             </Button>
-            <Button onClick={clearData} variant="outline">
+            <Button 
+              onClick={clearData} 
+              variant="outline" 
+              className="hover:border-purple-400 transition-all hover:scale-105"
+            >
               Clear All
             </Button>
           </div>
 
           {cgpa !== null && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-center text-lg font-semibold text-blue-900">
+            <div className="mt-8 p-6 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl animate-fade-in">
+              <p className="text-center text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Your Aggregate CGPA: {cgpa.toFixed(2)}
               </p>
             </div>
